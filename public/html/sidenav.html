@@ -1,0 +1,34 @@
+<div id="sidenav" class="sidenav noselect">
+	<label style="padding: 1px 1px; font-weight: bold; 	font-size: 25px;" id="sidenav-title">wiki</label>
+	<hr class="solid" />
+	<a href="/">Home</a>
+	<a href="/random">Random Article</a>
+	<a href="/newArticle">Create Article</a>
+	<a href="/all">All Articles</a>
+    <a href="/article/changelog">Changelog</a>
+  <a class="linkSim" onclick="showSearcher()">Show Searcher</a>
+    <a class="linkSim" onclick="getTip()">Get a tip!</a>
+	<hr class="small-solid" />
+	<b><label>Recent Articles:</label></b>
+	%first5articles%
+	<hr class="small-solid" />
+	<b><label>Contact:</label></b>
+	<a href="/report?type=issue">Report an Issue</a>
+	<a href="/report?type=suggest">Suggest</a>
+	<hr class="small-solid" />
+	<b><label>Analytics:</label></b>
+	%analytics%
+	<a href="/analytics">More...</a>
+    <hr class="small-solid" />
+    <b><label>Quick Settings:</label></b>
+    <label>Theme: </label>
+    <label id="currentTheme" style="display: inline-block">%theme%</label>
+    <button style="display: inline-block;" onclick="changeTheme()">Change</button>
+    <div style="display: none" id="owner-viewReports">
+        <hr class="small-solid" />
+        <b><label>Owner Things:</label></b>
+        <a href="/viewReports" %blinkReports%>View Reports</a>
+        <a href="/controlPanel">Control Panel</a>
+    </div>
+    <br><br><br><br><br><br><br>
+</div>

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		%head%
+		<title>Error</title>
+	</head>
+	
+	<body>
+		<center>
+			<h1>Invalid session</h1>
+			<hr class="solid" />
+			<p>The session was assigned for a different IP address, the session will be removed and you will have to login again. You will be redirected in <labl id="time">5</label></p>
+		</center>
+	</body>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            document.cookie = "session=;path=/";
+            let time = Date.now();
+            setTimeout(() => {
+                location.href = "/login";
+            }, 5000);
+            setInterval(() => {
+                document.getElementById("time").innerHTML = (5 - Math.round(((Date.now() - time) / 1000))) + " seconds";
+            }, 10);
+        });
+    </script>
+</html>

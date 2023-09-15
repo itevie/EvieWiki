@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		%head%
+		<title>%article_name% Update History</title>
+	</head>
+	
+	<body>
+		%sidenav%
+		<div class="main">
+			%top%
+			<h1>%article_name%: Update History</h1>
+			<p>Update history of the article: <b>%article_name%</b> (There are <label id="amount">loading...</label> entries)</p>
+            <p>Click <a href="/article/%article_name%/backups">here</a> to view the backups</p>
+			<p id="a">Placeholder</p>
+		</div>
+	</body>
+	
+	<script>
+		let uh = (JSON.parse('%updatehistory%')).reverse();
+
+        document.getElementById("amount").innerHTML = uh.length;
+        
+		let cols = "";
+		
+		for (let i in uh) {
+			cols += "<tr>";
+			
+			let change = "";
+			if (uh[i][2] != undefined) {
+				if (uh[i][3] > uh[i][2]) {
+					change = `<label style="color: green;">+${computeSize(uh[i][3] - uh[i][2])}</label>`;
+				} else if (uh[i][3] < uh[i][2]) {
+					change = `<label style="color: red;">-${computeSize(uh[i][3] - uh[i][2])}</label>`;
+				} else if (uh[i][3] == uh[i][2]) {
+					change = `<label style="color: gray;">=0b</label>`;
+				}
+			} else change = `<label style="color: gray;">=0b</label>`;
+
+			cols += `<td>${uh[i][0]}</td>`;
+			cols += `<td>${change}</td>`;
+			cols += `<td>${uh[i][4] == undefined ? "?" : uh[i][4]}</td>`;
+            let s = computeSize(uh[i][3]);
+            s = s.trim() == "" ? "0b" : s;
+			cols += `<td>${uh[i][3] == undefined ? "?" : s}</td>`;
+			cols += `<td>${formatTime(new Date(parseInt(uh[i][1])), "YYYY / mm / DD&nbsp;&nbsp;&nbsp;HH:MM:SS")}</td>`;
+			
+			cols += "</tr>"
+		}
+		
+		text = `<table class="t"><tr><th>Name</th><th>Changes</th><th>Byte edits</th><th>Total size</th><th>Time</th></tr>${cols}</table>`;
+		
+		if (text == "") text = "No history yet";
+		
+		document.getElementById("a").innerHTML = text;
+	</script>
+</html>

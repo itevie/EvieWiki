@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		%head%
+		<title>EvieWiki</title>
+	</head>
+
+	<body>
+		%sidenav%
+		<div class="main">
+			%top%
+			<h1>Account Recovery</h1>
+			<p>Forgot your password? Or lost your 2FA code? Attempt to resolve the issue here!</p>
+			<div id="step1">
+                <p>First of all, enter your account's username:</p>
+                <label>Username: </label><input type="text" id="username"></input>
+                <button onclick="checkUsername()">Next</button>
+            </div>
+            <div style="display: none;" id="step2">
+                <p>The account was found! Please pick an option to reset your password</p>
+                <button onclick="twofaOption()">2FA code</button><button onclick="showStep('backupOption');">Backup Code</button>
+            </div>
+            <div style="display: none;" id="backupOption">
+                <p>Please enter one of the 6 digit backup codes you have:</p>
+                <label>Backup Code: </label><input type="text" id="backupCode"></input>
+                <button onclick="sendBackupCode()">Next</button>
+            </div>
+		</div>
+	</body>
+	<script>
+        let steps = "step1;step2;backupOption".split(";");
+        let user = "";
+
+        function checkUsername() {
+            fetch("/userExists", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    username: document.getElementById("username").value
+                })
+            }).then(async res => {
+                if (!res.ok) {
+                    return message("Username cannot be found: " + await res.text());
+                }
+                user = document.getElementById("username").value;
+                showStep("step2");
+            });
+        }
+
+        function sendBackupCode() {
+            let code = document.getElementById("backupCode").value;
+            if (code.replace(/ /g, "").match(/[0-9]{6}/)) {
+                fetch("/useBackupCode", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        username: user,
+                        code: code
+                    })
+                }).then(async res => {
+                    if (!res.ok)
+                        return message("Failed to use backup code: " + await res.text());
+                    message("Backup successfully used! You will soon be redirected to change your password");
+                    let session = await res.text();
+                    document.cookie = "session=" + session + ";path=/";
+                    setTimeout(() => {
+                        location.href = "/accountRecoveryUpdatePassword"
+                    }, 2000);
+                });
+            } else {
+                return message("Invalid backup code, needs to be 6 digits long");
+            }
+        }
+
+        function showStep(step) {
+            for (let i in steps) {
+                document.getElementById(steps[i]).style.display = "none";
+            }
+            document.getElementById(step).style.display = "block";
+        }
+	</script>
+</html>

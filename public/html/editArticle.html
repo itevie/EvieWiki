@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		%head%
+		<script src="https://unpkg.com/@jitbit/htmlsanitizer@latest/HtmlSanitizer.js"></script>
+		<title>Edit: %article_name%</title>
+		<script type="text/javascript" src="/js/editor.js"></script>
+        <script type="text/javascript" src="/js/edit_area/edit_area_full.js"></script>
+	</head>
+	
+	<body>
+		%sidenav%
+		<div class="main">
+			%top%
+			<h1>Article Editor</h1>
+			<div>
+				<label id="name" style="display: inline-block">Article name: %article_name%</label>
+			</div><br>
+            <div style="display: block;" class="alert-info">
+				<div class="alert-info info-text">
+					<label>Suggestions wanted</label>
+				</div>
+				<p id="infoText">Have a suggestion for the editor? Please tell us! We'd love to hear more ideas, improvements that can be made about this editor<br>Problem with what's allowed in the article body? Also please suggest it! Thanks :)</p>
+			</div><br>
+			<div id="warningDiv" style="display: none;" class="alert-warning">
+				<div class="alert-warning warning-text">
+					<label>Warning</label>
+				</div>
+				<p id="warningText">Placeholder</p>
+			</div><br>
+			<div>
+				<p style="display: inline-block">You can also use HTML within your article.</p>
+				<button id="pub" style="float: right" onclick="publish()">Publish Edits</button>
+			</div>
+			<button onclick="if(confirm('Are you sure you want to change URL? any changes you have made will not be saved') == true)window.location='/article/eviewiki%20editor'">Click here to learn more about the editor</button><br>
+			<label>Preview:</label>
+			<div style="width: 100%; height: 200px; overflow-y: scroll;border-style: solid; border-color: black;" id="preview"></div>
+			<br><input onchange="checkChanged()" type="checkbox" id="useeditor">Use fancy editor by default?</input><br>
+            <label>Language for editor: </label><select id="lan" onchange="changeLan()">
+                <option value="en">English</option>
+                <option value="bg">Bulgarian</option>
+                <option value="cs">Czech</option>
+                <option value="de">German</option>
+                <option value="dk">Danish</option>
+                <option value="eo">Esperanto</option>
+                <option value="es">Spanish</option>
+                <option value="fi">Finnish</option>
+                <option value="fr">French</option>
+                <option value="hr">Croatian</option>
+                <option value="it">Italian</option>
+                <option value="ja">Japanese</option>
+                <option value="mk">Macedonian</option>
+                <option value="nl">Dutch</option>
+                <option value="pl">Polish</option>
+                <option value="pt">Portuguese</option>
+                <option value="ru">Russian</option>
+                <option value="sk">Slovak</option>
+                <option value="zh">Chinese</option>
+            </select><br><br>
+            <input onchange="autoUpdateChange()" type="checkbox" id="autoUpdate">Auto replace custom things</input><br><br>
+            <label>Editor:</label><br>
+            <button onclick="addLink()">Add Article Link</button>
+            <button onclick="addCurrentDate()">Add Current Date</button>
+            <button onclick="addCurrentTime()">Add Current Time</button>
+			<textarea id="articleText" style="width:100%; height: 700px">%text%</textarea>
+            <br><br><br><br><br><br><br>
+		</div>
+	</body>
+	
+	<script>
+        let type = "%type%";
+        let id = "%id%";
+        
+        //Detect keyboard shortcuts
+        document.addEventListener('keydown', e => {
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                publish();
+            }
+            else if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "l") {
+                e.preventDefault();
+                addLink();
+            }
+            else if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "t") {
+                addCurrentTime();
+            }
+             else if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "d") {
+                addCurrentDate();
+            }
+            else if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "r") {
+                e.preventDefault();
+                e.stopPropagation();
+                let what = prompt("Replace what (leave empty to cancel) (enter a regex):");
+                if (what == null) return;
+                let wit = prompt(`Replace ${what} with:`);
+                document.getElementById("articleText").value = document.getElementById("articleText").value.replace(new RegExp(what, "g"), wit);
+            }
+            else if (e.ctrlKey && e.key.toLowerCase() === "r") {
+                e.preventDefault();
+                e.stopPropagation();
+                let what = prompt("Replace what (leave empty to cancel):");
+                if (what == null) return;
+                let wit = prompt(`Replace ${what} with:`);
+                while (document.getElementById("articleText").value.includes(what)) {
+                    document.getElementById("articleText").value = document.getElementById("articleText").value.replace(what, wit);
+                }
+            }
+        });
+
+        if (type == "new") {
+           document.getElementById("pub").innerHTML = "Publish";
+           document.getElementById("name").innerHTML = "Article name: <input id=\"articleName\"></input>"
+        }
+        
+        if (getCookie("useEditor") == "true" || getCookie("useEditor") == "") {
+            loadEditor();
+            document.getElementById("useeditor").checked = true;
+        } else {
+            document.getElementById("useeditor").checked = false;
+        }
+        
+        if (getCookie("autoUpdate") == "true") {
+            document.getElementById("autoUpdate").checked = true;
+        } else {
+            document.getElementById("autoUpdate").checked = false;
+        }
+        
+        if (getCookie("editorLan") != "") {
+            document.getElementById("lan").value = getCookie("editorLan");
+        }
+        
+        function autoUpdateChange() {
+            let v = document.getElementById("autoUpdate").checked;
+            document.cookie="autoUpdate=" + v + ";path=/"
+        }
+        
+        function changeLan() {
+            let v = document.getElementById("lan").value;
+            document.cookie="editorLan=" + v + ";path=/"
+            editAreaLoader.delete_instance("articleText");
+            loadEditor();
+        }
+        
+        function addLink() {
+            let a = prompt("Enter the articles name: ");
+            if (!a) return;
+            let html = "#[" + a + "]";
+            insertAtCursor(document.getElementById("articleText"), html);
+        }
+
+        function addCurrentDate() {
+            insertAtCursor(document.getElementById("articleText"), "@date#");
+        }
+
+        function addCurrentTime() {
+            insertAtCursor(document.getElementById("articleText"), "@time#");
+        }
+
+        function loadEditor() {
+            editAreaLoader.init({
+                id : "articleText",
+                syntax: "html",
+                start_highlight: true,
+                allow_toggle: false,
+                language: getCookie("editorLan") != "" ? getCookie("editorLan") : "en"
+            });
+        }
+        
+        function checkChanged() {
+            if (document.getElementById("useeditor").checked == true) {
+                document.cookie = "useEditor=true;path=/";
+                loadEditor();
+            } else {
+                document.cookie = "useEditor=false;path=/";
+                editAreaLoader.delete_instance("articleText");
+            }
+        }
+        
+        async function san() {
+            return await sani();
+        }
+        
+        function sani() {
+            const promise = new Promise((res, rej) => {
+                let t = edit(editAreaLoader.getValue("articleText"));
+                
+                fetch("/sanitise", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        text: t
+                    })
+                }).then(async r => {
+                    let text = await r.text();
+
+                    if (r.ok) {
+                        res(text);
+                    } else {
+                        warning(text);
+                    }
+                });
+            });
+            
+            return promise;
+        }
+        
+		let old = "";
+		document.addEventListener("DOMContentLoaded", () => {
+            setInterval(() => {
+                let b = getCursorPos(document.getElementById("articleText"));
+                let a = editAreaLoader.getValue("articleText");
+                let e = edit(a);
+                if (old == a) return;
+                document.getElementById('preview').innerHTML = a;
+                old = a;
+                if ("%type%" != "new") {
+                    fetch("/articleInUse", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            articleName: "%article_name%",
+                            id: id
+                        })
+                    });
+                }
+                if (a != e)
+                    setCursorPos(document.getElementById("articleText"), b.start, b.end);
+            }, 2000);
+		});
+
+		async function publish(redirect = true) {
+			let a = await san(); 
+			
+			if (a != editAreaLoader.getValue("articleText"))
+				warning(`Your article contains unallowed strings or has issues <button onclick="sanitize()">Click here to fix</button><button onclick="sanitize(); publish();">Click here to fix then publish</button>`);
+			else {
+				let name = "%type%" == "new" ? document.getElementById("articleName").value : "%article_name%";
+				
+				if (name.length == 0)
+					return warning("Your article's name cannot be empty");
+				else hideWarning();
+				
+				fetch(type == "new" ? "/newArticle" : "/updateArticle", {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json"
+					},
+					body: JSON.stringify({
+						articleName: name,
+						article: a,
+                        id: id
+					})
+				}).then(async res => {
+					let text = await res.text();
+					if (res.ok) {
+                        if (redirect == true)
+                            return window.location = `/article/${name}`;
+                        else
+                            return message("Article published");
+					} else {
+						warning(text);
+					}
+				});
+			}
+		}
+		
+		async function sanitize() {
+			let a = await san();
+			editAreaLoader.setValue("articleText", a);
+			hideWarning();
+		}
+		
+		function hideWarning() {
+			document.getElementById("warningText").innerHTML = "";
+			document.getElementById("warningDiv").style.display = "none";
+		}
+		
+		function warning(t) {
+			document.getElementById("warningText").innerHTML = t;
+			document.getElementById("warningDiv").style.display = "block";
+		}
+	</script>
+</html>

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		%head%
+		<title>%article_name% Update History</title>
+	</head>
+	
+	<body>
+		%sidenav%
+		<div class="main">
+			%top%
+			<h1>%article_name%: Backups</h1>
+            <p>There are <label id="amount">loading...</label> entries</p>
+            <p id="a">Placeholder</p>
+		</div>
+	</body>
+	
+	<script>
+		let uh = (JSON.parse('%backups%')).reverse();
+        let old = [];
+        
+        let x = uh.length - 1;
+        for (let i in uh) {
+            old.push(x);
+            x--;
+        }
+        
+        document.getElementById("amount").innerHTML = uh.length;
+        
+		let cols = "";
+		
+		for (let i in uh) {
+			cols += "<tr>";
+			
+			cols += `<td>${formatTime(new Date(parseInt(uh[i].createdAt)), "YYYY/mm/DD HH:MM:SS")}</td>`;
+			cols += `<td>${uh[i].cause}</td>`;
+            cols += `<td>${computeSize(uh[i].size)}</td>`;
+			cols += `<td><a href="/article/%article_name%/backups?load=${old[i]}">Click to edit</a></td>`;
+			
+			cols += "</tr>"
+		}
+		
+		text = `<table class="t"><tr><th>Time</th><th>Cause</th><th>Size</th><th>Link</th></tr>${cols}</table>`;
+		
+		if (text == "") text = "No backups yet";
+		
+		document.getElementById("a").innerHTML = text;
+	</script>
+</html>

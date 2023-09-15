@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		%head%
+		<title>%article_name%</title>
+	</head>
+	
+	<body>
+		%sidenav%
+		<div class="main">
+			%top%
+			<div class="noselect">
+				<h1 style="margin: 2px">%article_name%</h1>
+				<label style="display: inline-block; padding: 0px 10px" id="author">%author%</label>
+				<label style="display: inline-block;" id="createdAt">Loading...</label> - 
+				<a href="/article/%article_name%/updateHistory">View update history</a> - 
+                <a href="/article/%article_name%/analytics">Analytics</a>
+				<button id="editButton" style="display: block;" onclick="window.location = '/article/%article_name%?edit=true'">Edit Article</button>
+				<button onclick="makeJump()">Make a jump to header link</button>
+				<div class="style: none" id="ownerDiv">
+					<button id="deleteButton" onclick="deleteArticle()">Delete Article</button>
+					<button id="forceBackup" onclick="forceBackup()">Force Backup</button>
+					<input type="checkbox" id="ownerOnly" onchange="updateOnlyMe()" %onlyme%><label>Only I can edit</label>
+				</div>
+			</div>
+            <br style="display: %contentsDisplay%">
+            <div class="contents noselect" style="display: %contentsDisplay%">
+                <center><label><b>Contents</b></label></center>
+                %heads%
+            </div>
+			<p id="articleText" style="word-wrap: break-word">%text%</p>
+			<div id="backlinks" style="display: none;" class="alert-info">
+				<div class="alert-info info-text">
+					<label>Articles that link to this one</label>
+				</div>
+				<p id="links">Placeholder</p>
+			</div><br>
+		</div>
+	</body>
+	
+	<script>
+		let author = "%author%";
+		let backlinks = "%backlinks%".split(";");
+		
+		function updateOnlyMe() {
+			fetch("/updateOnlYMe", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json"
+				},
+				body: JSON.stringify({
+					articleName: "%article_name%",
+					newValue: document.getElementById("ownerOnly").checked
+				})
+			}).then(async res => {
+				if (!res.ok) {
+					message(await res.text(), "Error");
+				}
+
+				return message("Updated!");
+			});
+
+		}
+		function makeJump() {
+			let els = document.querySelectorAll("h1, h2, h3, h4, h5, h6")
+			let btns = "";
+			for (let i in els) {
+				if (!els[i].id) continue;
+				if (els[i].id.startsWith("header-")) {
+					btns += `<button onclick="copyLink('${els[i].id}')" style="width: 100%; margin: 2px 0 0 0">${els[i].id.replace("header-", "")}`;
+				}
+			}
+			let html = `<label>Press on a button to copy the link to your clipboard!</label>${btns}<br>`;
+			message(html, "Jump to headers");
+		}
+
+		function copyLink(h) {
+			let url = `${(location.href).replace(/\?jump=[^&]+/g, "")}?jump=${encodeURIComponent(h.replace("header-", ""))}`;
+			navigator.clipboard.writeText(url).then(() => {
+				message("Successfully copied link to clipboard!");
+			});
+		}
+
+		document.addEventListener("DOMContentLoaded", () => {
+      let heads = document.querySelectorAll("h2")
+			document.getElementById("createdAt").innerHTML = "Created at: " + formatTime(new Date(parseInt("%createdAt%")), "YYYY/mm/DD HH:mm:SS")
+				+ " - Last Updated: " + (formatTime(new Date(parseInt("%lastupdated%")), "YYYY/mm/DD HH:mm:SS").includes("NaN") ? "No updates" : formatTime(new Date(parseInt("%lastupdated%")), "YYYY/mm/DD HH:mm:SS"))
+			let amount = 0;
+			let text = "";
+
+			if ("%jump%") {
+				goto("%jump%");
+			}
+			
+			for (let i in backlinks) {
+				if (!backlinks[i]) continue;
+				text += `<a href="/article/${backlinks[i]}">${backlinks[i]}</a> - `;
+			}
+			if (text != "") {
+				document.getElementById("backlinks").style.display = "block";
+				document.getElementById("links").innerHTML = text.slice(0, -3);
+			}
+			let x = setInterval(() => {
+				amount++;
+				if (amount > 1000) {
+					clearInterval(x);
+					return;
+				}
+				if (window.hasOwnProperty("account"))
+					clearInterval(x);
+				else return;
+				//if (author == window.account) document.getElementById("editButton").style.display = "block";
+				if (author == window.account) document.getElementById("ownerDiv").style.display = "inline-block";
+        	}, 10);
+		});
+		
+		function forceBackup() {
+			question("Are you sure?", forceBackupConfirmed);
+		}
+
+        function forceBackupConfirmed() {
+			if (author != window.account) return;
+			fetch("/forceBackup", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json"
+				},
+				body: JSON.stringify({
+					articleName: "%article_name%"
+				})
+			}).then(async res => {
+				if (res.ok) {
+					message("Backup created");
+				} else message(`Failed to create backup: ${await res.text()}`);
+			});
+		}
+        
+        function deleteArticle() {
+			question("Are you sure? This will delete the article, the article can be recovered within 1 day after deletion by revisting this page. After that the article is unrecoverable.", deleteArticleConfirmed);
+		}
+
+		function deleteArticleConfirmed() {
+			if (author != window.account) return;
+			fetch("/delete", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json"
+				},
+				body: JSON.stringify({
+					articleName: "%article_name%"
+				})
+			}).then(async res => {
+				if (res.ok) {
+					return window.location = "/";
+				} else message(`Failed to delete: ${await res.text()}`);
+			});
+		}
+	</script>
+</html>

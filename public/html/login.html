@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		%head%
+		<title>Login</title>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
+	</head>
+	
+	<body>
+		%sidenav%
+		<div class="main">
+			%top%
+			<h1>Login</h1>
+			<p>Login to your %name% account</p>
+			<div id="loginForm">
+				<div>
+					<label style="inline-block">Username: </label>
+					<input id="username" placeholder="username" />
+				</div>
+				<div>
+					<label style="inline-block">Password: </label>
+					<input id="password" type="password" placeholder="password" />
+				</div><br>
+				<div id="warningDiv" style="display: none;" class="alert-warning">
+					<div class="alert-warning warning-text">
+						<label>Warning</label>
+					</div>
+					<p id="warningText">Placeholder</p>
+				</div><br>
+				<input id="sessionCheck" type="checkbox">By logging in you agree for a "session" cookie to be saved onto your device</input><br><br>
+				<button onclick="login()">Login to your account</button>&nbsp;&nbsp;<a href="/accountRecovery">Forgot password?</a>
+			</div>
+		</div>
+	</body>
+	
+	<script>
+		let hasPressed = false;
+
+		function login() {
+			if (hasPressed == true) return;
+			hasPressed = true;
+			
+			const username = document.getElementById("username").value;
+			const password = document.getElementById("password").value;
+			const accepted = document.getElementById("sessionCheck").checked;
+
+			let warning = "";
+			
+			if (password.length < 8) warning = "Password is too short, must be 8 or more characters";
+			if (username.length < 3) warning = "Username is too short, must be 3 or more characters";
+			if (accepted != true) warning = "You cannot login as you have not checked the checkbox.";
+			
+			if (warning != "") {
+				document.getElementById("warningText").innerHTML = warning;
+				document.getElementById("warningDiv").style.display = "block";
+				hasPressed = false;
+				return;
+			}
+			
+			document.getElementById("warningDiv").style.display = "none";
+			
+			fetch("/login", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json"
+				},
+				body: JSON.stringify({
+					username: username,
+					password: password
+				})
+			}).then(async res => {
+				hasPressed = false;
+				if (res.ok) {
+					document.cookie = `session=${await res.text()}`;
+					document.getElementById("loginForm").innerHTML = "<label>Logged in! Redirecting...</label>";
+					setTimeout(() => {
+						window.location = "/";
+					}, 1000);
+				} else {
+					text = await res.text();
+					if (text == "Missing 2fa code") {
+						return sendAfterVerify("/login", {username:username,password:password}, ((res) => {
+							message("Successfully logged in!");
+							document.cookie = `session=${res}`;
+							setTimeout(() => {
+								window.location = "/";
+							}, 1000);
+						}));
+					}
+					document.getElementById("warningText").innerHTML = text;
+					document.getElementById("warningDiv").style.display = "block";
+				} 
+			}).catch(async err => {
+				console.log(err);
+			});
+		}
+	</script>
+</html>

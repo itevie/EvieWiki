@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		%head%
+		<title>Notifications</title>
+	</head>
+
+	<body>
+		%sidenav%
+		<div class="main">
+			%top%
+			<h1>Your notifications</h1>
+			<p>You have <label id="notificationCount"></label><label class="linkSim" style="float: right;color: red" onclick="confirmDeleteAll()">Delete All Notifications</label></p>
+			<div id="notifications"></div>
+			<p>Note: notifications will be deleted after 7 days</p<
+		</div>
+	</body>
+	<script>
+        let notifications = JSON.parse('%notifications%');
+
+        function confirmDeleteAll() {
+            question(`Are you sure you want to delete ${document.getElementById("notificationCount").innerHTML}?`, (() => del("all")));
+        }
+
+        function load() {
+            let amount = Object.keys(notifications).length;
+            document.getElementById("notificationCount").innerHTML = `${amount} ${amount > 1 || amount == 0 ? "notifications" : "notification"}`;
+
+            let a = [];
+            let temp = `<div class="notification"><p><b>%title%</b>&nbsp;&nbsp;<small>%time%</small><label onclick="del('%id%')" class="linkSim" style="float: right;color: red;">Delete</label></p><p>%text%</p></div>`;
+
+            let types = {
+                "newLogin": "New Login",
+                "welcome": "Welcome to EvieWiki"
+            }
+
+            for (let i in notifications) {
+                let text = "";
+                switch (notifications[i].type) {
+                    case "newLogin":
+                        text = `There was a new login into your account at: ${formatTime(new Date(notifications[i].time), "YYYY / mm / DD HH:MM:SS")}<br><br>User Agent: ${notifications[i].ua}`;
+                        break;
+                    case "welcome":
+                        text = `Welcome to EvieWiki! We hope you enjoy your stay. Check out all the articles on the website by going to <a href="/all">All Articles</a> or check out a random one going here: <a href="/random">Random Article</a><br><br>If you ever have a suggestion or find an issue, please report it using the side nav!`;
+                        break;
+                }
+                let b = temp.replace(/%time%/g, formatTime(new Date(notifications[i].time), "YYYY / mm / DD HH:MM:SS")).replace(/%title%/g, types[notifications[i].type]).replace(/%text%/g, text).replace(/%id%/g, i);
+                a.push(b);
+            }
+
+            a = a.reverse();
+
+            let x = a.join("<br>");
+            document.getElementById("notifications").innerHTML = x;
+        }
+        load();
+
+        function del(id) {
+            fetch("/deleteNotification", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    id: id
+                })
+            }).then(async res => {
+                if (!res.ok)
+                    return message(`Failed to delete notification: ${await res.text()}`);
+                notifications = await res.json();
+                load();
+            });
+        }
+	</script>
+</html>

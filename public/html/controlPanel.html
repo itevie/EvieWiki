@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		%head%
+		<title>EvieWiki</title>
+	</head>
+	
+	<body>
+		%sidenav%
+		<div class="main">
+			%top%
+            <div id="m">
+                <h1>Control Panel</h1>
+                <div id="warningDiv" style="display: none;" class="alert-warning">
+                    <div class="alert-warning warning-text">
+                        <label>Warning</label>
+                    </div>
+                    <p id="warningText">Placeholder</p>
+                </div>
+                <h2>User list</h2>
+                <label>Users: %users%</label>
+                <h2>Article Maker Manageer</h2>
+                <label>Add: </label><input id="newMaker" /><button onclick="newMaker()">Add</button><br>
+                <label>Remove: </label><input id="removeMaker" /><button onclick="removeMaker()">Remove</button>
+                <h2>User manager</h2>
+                <label>Ban a user: </label><input id="toBan" /><button onclick="ban()">Ban</button><br>
+                <label>Unban a user: </label><input id="toUnban" /><button onclick="unban()">Unban</button>
+            </div>
+        </div>
+	</body>
+    
+    <script>
+        function ban() {
+            let user = document.getElementById("toBan").value;
+            fetch("/ban", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    user: user
+                })
+            }).then(async res => {
+                if (res.ok) reload();
+                if (!res.ok) warning(await res.text());
+            })
+        }
+
+        function unban() {
+            let user = document.getElementById("toUnban").value;
+            fetch("/unban", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    user: user
+                })
+            }).then(async res => {
+                if (res.ok) reload();
+                if (!res.ok) warning(await res.text());
+            })
+        }
+
+        function newMaker() {
+            let user = document.getElementById("newMaker").value;
+            fetch("/controlPanel", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    newMaker: user
+                })
+            }).then(async res => {
+                if (res.ok) reload();
+                if (!res.ok) warning(await res.text());
+            })
+        }
+        
+        function removeMaker() {
+            let user = document.getElementById("removeMaker").value;
+            fetch("/controlPanel", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    removeMaker: user
+                })
+            }).then(async res => {
+                if (res.ok) reload();
+                if (!res.ok) warning(await res.text());
+            })
+        }
+        
+        function reload() {
+            document.getElementById("m").style.display = "none";
+            location.reload();
+        }
+        
+        function hideWarning() {
+			document.getElementById("warningText").innerHTML = "";
+			document.getElementById("warningDiv").style.display = "none";
+		}
+		
+		function warning(t) {
+            hasClicked = false;
+			document.getElementById("warningText").innerHTML = t;
+			document.getElementById("warningDiv").style.display = "block";
+		}
+    </script>
+</html>

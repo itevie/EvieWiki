@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		%head%
+		<title>EvieWiki</title>
+	</head>
+	
+	<body>
+		%sidenav%
+		<div class="main">
+			%top%
+			<h1>Banned</h1>
+			<p>Uh oh, your account has been banned from EvieWiki</p>
+			<button onclick="logout()">Logout</button>
+		</div>
+	</body>
+	<script>
+		function logout() {
+			document.cookie = "session=;path=;";
+			location.reload();
+		}
+	</script>
+</html>

@@ -1,0 +1,197 @@
+body {
+	font-family: Arial, Helvetica, sans-serif;
+}
+
+a {
+	text-decoration: none;
+	color: blue;
+}
+
+.labelLink {
+	text-decoration: none;
+	color: blue;
+}
+
+* {
+    word-wrap: break-word;
+}
+
+.t {
+
+}
+
+.t th, .t td {
+    align-text: left;
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+.t tr:nth-child(even) {
+  background-color: #DDDDDD;
+}
+
+.settingsForm {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    -webkit-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+    background-color: white;
+    border-style: solid;
+    border-color: black;
+    padding: 0px 10px 10px 10px;
+    text-align: left;
+    min-width: 300px;
+    max-width: 500px;
+}
+
+.dim {
+  position: fixed;
+  top:0 ;
+  bottom:0;
+  left: 0;
+  right: 0;
+  background-color: #000;
+  opacity: 0.8;
+  z-index: 1001;
+}
+
+.contents {
+    width: fit-content;
+    min-width: 200px;
+    background-color: #e5e5e5;
+    padding: 10px;
+    border-style: solid;
+    border-color: #f9f9f9;
+}
+
+.blink {
+    animation: blinker 1s linear infinite;
+    background-color: rgba(255, 255, 0, 0);
+}
+
+@keyframes blinker {
+    0% {
+        background-color: rgba(255, 255, 0, 0);
+    }
+    
+    50% {
+        background-color: rgba(255, 255, 0, 1);
+    }
+    
+    90% {
+        background-color: rgba(255, 255, 0, 0);
+    }
+}
+
+button {
+    cursor: pointer;
+}
+
+.linkSim {
+	text-decoration: none;
+	color: blue;
+    cursor: pointer;
+}
+
+button {
+    cursor: pointer;
+}
+
+hr.solid {
+  border-top: 3px solid #bbb;
+}
+
+.header-text {
+	text-align: right;
+}
+
+.searchDiv {
+    border-style: solid;
+    border-color: black;
+    padding: 0 0 15px;
+}
+
+.main {
+  margin-left: 160px;
+  padding: 0px 10px;
+}
+
+.sidenav {
+  height: 100%;
+  width: 160px;
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  overflow-x: hidden;
+  padding-top: 20px;
+  background-color: #DDDDDD;
+}
+
+.sidenav a {
+	text-align: left;
+	padding: 6px 8px 6px 16px;
+	text-decoration: none;
+	font-size: 15px;
+	display: block;
+	color: blue;
+}
+
+.sidenav label {
+	text-align: left;
+	padding: 6px 8px 6px 16px;
+	text-decoration: none;
+	font-size: 15px;
+	display: block;
+	color: black;
+}
+
+#sidenav-title {
+	text-align: center;
+	padding: 6px 8px 6px 16px;
+	text-decoration: none;
+	font-size: 25px;
+	display: block;
+}
+
+.warning-text {
+	border-style: solid;
+	background-color: yellow;
+	width: 100%;
+}
+
+.alert-warning {
+	border-style: solid;
+	border-color: yellow;
+	border-width: 1px;
+}
+
+.alert-warning *:not(div) {
+	padding: 5px;
+}
+
+.info-text {
+	border-style: solid;
+	background-color: lightblue;
+	width: 100%;
+}
+
+.alert-info {
+	border-style: solid;
+	border-color: lightblue;
+	border-width: 1px;
+}
+
+.alert-info *:not(div) {
+	padding: 5px;
+}
+
+.noselect {
+  -webkit-touch-callout: none;
+    -webkit-user-select: none;
+     -khtml-user-select: none;
+       -moz-user-select: none;
+        -ms-user-select: none;
+            user-select: none;
+}

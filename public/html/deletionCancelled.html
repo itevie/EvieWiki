@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		%head%
+		<title>EvieWiki</title>
+	</head>
+
+	<body>
+		%sidenav%
+		<div class="main">
+			%top%
+			<h1>Deletion Cancelled</h1>
+			<p>Due to you loggin in, your account has been reinstated and the pending deletion has been canclled.</p>
+			<button onclick="location.href='/'">Okay</button>
+		</div>
+	</body>
+	<script>
+		function logout() {
+			document.cookie = "session=;path=;";
+			location.reload();
+		}
+	</script>
+</html>

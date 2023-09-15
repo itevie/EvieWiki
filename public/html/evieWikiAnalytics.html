@@ -1,0 +1,75 @@
+ 
+<!DOCTYPE html>
+<html>
+	<head>
+		%head%
+		<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js" type="text/javascript"></script>
+		<title>EvieWiki</title>
+	</head>
+
+	<body>
+		%sidenav%
+		<div class="main">
+			%top%
+			<h1>EvieWiki Analytics</h1>
+			<h2>Datebases</h3>
+			<label>Users: <label id="dbUserAmount">loading...</label> (<label id="dbUserSize">loading...</label>)</label><br>
+			<label>Articles: <label id="dbArticleAmount">loading...</label> (<label id="dbArticleSize">loading...</label>)</label><br>
+			<label>Sessions: <label id="dbSessionAmount">loading...</label> (<label id="dbSessionSize">loading...</label>)</label><br>
+			<label>Total size: <label id="dbTotalSize">loading...</label></label>
+			<h2>Server</h2>
+			<label>Operating system: <label id="platform">loading...</label></label><br>
+			<label>Process Uptime: <label id="uptime">loading...</label></label><br>
+			<label>Memory Used: <label id="memory">loading...</label></label><br><br>
+			<label><small><i>Updated every 5 seconds</i></small></label>
+		</div>
+	</body>
+	<script>
+        let things = "dbUserAmount;dbUserSize;dbArticleAmount;dbArticleSize;dbSessionAmount;dbSessionSize;dbTotalSize;memory;uptime;platform".split(";");
+        let prevColor = "";
+        let myChart = undefined;
+        document.addEventListener("DOMContentLoaded", () => {
+
+            loadData();
+            setInterval(()=>{
+                loadData();
+            }, 5000);
+        });
+
+        let showGraph = false;
+        function loadData() {
+            fetch("/analytics", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: "{}"
+            }).then(async res => {
+                if (!res.ok) return error();
+                let a = await res.json();
+                for (let i in a) {
+                    if (things.includes(i) == false) continue;
+                    document.getElementById(i).innerHTML = a[i].toString().trim();
+                    document.getElementById(i).style.color = prevColor;
+                }
+            });
+        }
+
+        function toggle() {
+            if (showGraph == true) {
+                showGraph = false;
+                document.getElementById("memoryOverTimeDiv").style.display = "none";
+            } else {
+                showGraph = true;
+                document.getElementById("memoryOverTimeDiv").style.display = "block";
+            }
+        }
+        function error() {
+            for (let i in things) {
+                prevColor = document.getElementById(things[i]).style.color;
+                document.getElementById(things[i]).style.color = "red";
+                document.getElementById(things[i]).innerHTML = "Failed to load...";
+            }
+        }
+	</script>
+</html>

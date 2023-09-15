@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		%head%
+		<title>EvieWiki</title>
+	</head>
+	
+	<body>
+		%sidenav%
+		<div class="main">
+			%top%
+			<h1>Report: %type%</h1>
+            <div id="m">
+                <p id="type"></p>
+                <label>Write your report here:</label>
+                <div id="template" style="display: none;">
+                    <br>
+                    <label>Use a template: </label>
+                    <select id="templateSelect">
+                        <option value="user">User report</option>
+                    </select>
+                    <button onclick="load()">Load template</button>
+                </div><br>
+                <textarea id="report" style ="width: 100%; height: 300px"></textarea>
+                <div id="warningDiv" style="display: none;" class="alert-warning">
+                    <div class="alert-warning warning-text">
+                        <label>Warning</label>
+                    </div>
+                    <p id="warningText">Placeholder</p>
+                </div><br>
+                <button onclick="send()">Send!</button>
+            </div>
+	</body>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            if ((location.href).toString().endsWith("issue")) document.getElementById("template").style.display = "block";
+        });
+        
+        let type = "%type%";
+        
+        if (type == "issue") {
+            document.getElementById("type").innerHTML = `Found an issue? With the site? With a user or article? Report it here!`;
+        } else {
+            document.getElementById("type").innerHTML = `Have a suggestion for the site? Such as a new feature, etc. Please tell us!`;
+        }
+        
+        let hasClicked = false;
+        
+        function load() {
+            let t = document.getElementById("templateSelect").value;
+            if (t == "user") {
+                document.getElementById("report").value = `Username: \nReason: `;
+            }
+        }
+        
+        function send() {
+            if (hasClicked == true) return;
+            hasClicked = true;
+            
+            let body = document.getElementById("report").value;
+            
+            if (body.length < 20) return warning("Your report is too short. It must be larger than 20 characters");
+            if (body.length > 1000) return warning("Your report is too large. It must be less than 1000 characters");
+            
+            hideWarning();
+            
+            fetch("/report", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    report: body,
+                    type: type
+                })
+            }).then(async res => {
+                if (res.ok) {
+                    document.getElementById("m").innerHTML = "Report sent! Thank you!";
+                    setTimeout(() => {
+                        window.location = "/";
+                    }, 1000);
+                } else {
+                    let a = await res.text()
+                    if (!a.startsWith("{")) {
+                        return warning("Failed to send report: " + (a));
+                    }
+                    warning("Failed to send report: " + (await res.json()).message);
+                }
+            });
+        }
+        
+        function hideWarning() {
+			document.getElementById("warningText").innerHTML = "";
+			document.getElementById("warningDiv").style.display = "none";
+		}
+		
+		function warning(t) {
+            hasClicked = false;
+			document.getElementById("warningText").innerHTML = t;
+			document.getElementById("warningDiv").style.display = "block";
+		}
+    </script>
+</html>

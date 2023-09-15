@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		%head%
+		<title>EvieWiki</title>
+	</head>
+	
+	<body>
+		%sidenav%
+		<div class="main">
+			%top%
+            <div class="noselect">
+				<h1 style="margin: 2px">user: %user%</h1>
+				<label style="display: inline-block;" id="createdAt">Loading...</label> - 
+				<a href="/user/%user%/updateHistory">View update history</a>
+				<button id="editButton" style="display: none;" onclick="window.location = '/user/%user%?edit=true'">Edit Article</button>
+            </div><br>
+			<div id="articleListBox" style="display: block;" class="alert-info">
+				<div class="alert-info info-text">
+					<label>Articles created</label>
+				</div>
+				<p id="articleList">Placeholder</p>
+			</div><br>
+            %article%
+		</div>
+	</body>
+    
+    <script>
+        let articles = JSON.parse('%articles%');
+        
+        let text = "";
+        
+        for (let i in articles) {
+            text += `<a href="/articles/${articles[i]}">${articles[i]}</a><label> - </label>`;
+        }
+        
+        document.getElementById("createdAt").innerHTML = "Created at: " + formatTime(new Date(parseInt("%createdAt%")), "YYYY/mm/DD HH:mm:SS")
+				+ " - Last Updated: " + formatTime(new Date(parseInt("%lastupdated%")), "YYYY/mm/DD HH:mm:SS");
+			
+        if (text != "") {
+            text = text.slice(0, -("<label> - </label>".length));
+            document.getElementById("articleList").innerHTML = text;
+            setTimeout(() => {
+                if (window.account.toLowerCase() == "%user%".toLowerCase()) {
+                    document.getElementById("editButton").style.display = "block";
+                }
+            }, 2000);
+        } else {
+            document.getElementById("articleListBox").style.display = "none";
+        }
+    </script>
+</html>

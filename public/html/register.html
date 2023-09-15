@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		%head%
+		<title>Register</title>
+        <script src="https://unpkg.com/check-password-strength/dist/umd.js"></script></head>
+	<body>
+		%sidenav%
+		<div class="main">
+			%top%
+			<h1>Register</h1>
+			<p>Create an account on %name%! After this you'll be able to:</p>
+			<ul>
+				<li>Create articles (if given perimission)</h1>
+				<li>Suggest edits</li>
+			</ul>
+			<div id="regForm">
+                <label for="username">Username: </label>
+                <input onkeyup="check()" type="text" id="username" placeholder="username" /><br>
+               
+                <label for="password">Password: </label>
+                <input onkeyup="check()" id="password" type="password" placeholder="password" /><br>
+                
+                <label for="confirm">Confirm: </label>
+                <input onkeyup="check()" id="confirm" type="password" placeholder="confirm password" /><br><br>
+                
+                <div id="warningDiv" style="display: none;" class="alert-warning">
+                    <div class="alert-warning warning-text">
+                        <label>Warning</label>
+                    </div>
+                    <p id="warningText">Placeholder</p>
+                </div><br>
+                
+                <center>
+                    <b><label>By creating an account you agree to the <a href="/terms">Terms</a></label></b>
+                </center>
+                
+                <button id="submitButton" onclick="register()">Register</button>
+			</div>
+		</div>
+	</body>
+	
+	<script>
+		let hasPressed = false;
+
+        function check() {
+            const username = document.getElementById("username").value;
+			const password = document.getElementById("password").value;
+			const confirm = document.getElementById("confirm").value;
+			
+			let warning = "";
+			
+			if (confirm != password) warning = "Confirmation must be equal to password";
+            let a = passwordStrength(password);
+			if (a.value == "Too weak" || a.value == "Weak") {
+                warning = `Your password is too weak. (${a.value})<br><label style="color: ${a.contains.includes('lowercase') ? 'green' : 'red'}">Lowercase</label>`
+                warning += `<br><label style="color: ${a.contains.includes('uppercase') ? 'green' : 'red'}">Uppercase</label>`;
+                warning += `<br><label style="color: ${a.contains.includes('symbol') ? 'green' : 'red'}">Symbol</label>`;
+                warning += `<br><label style="color: ${a.contains.includes('number') ? 'green' : 'red'}">Number</label>`;
+            }
+            if (password.length < 8) warning = "Password is too short, must be 8 or more characters";
+			if (username.length < 3) warning = "Username is too short, must be 3 or more characters";
+			if (/[A-Za-zÀ-ÖØ-öø-ÿ0-9 ]{3,15}/.test(username) == false) warning = "Username can only contain alphanumeric + accented letters that is of length 3-15";
+			
+			if (warning != "") {
+				document.getElementById("warningText").innerHTML = warning;
+				document.getElementById("warningDiv").style.display = "block";
+				hasPressed = false;
+                document.getElementById("submitButton").enabled = false;
+				return;
+			} else {
+                document.getElementById("warningDiv").style.display = "none";
+                document.getElementById("submitButton").enabled = true;
+            }
+        }
+        
+		function register() {
+            const username = document.getElementById("username").value;
+			const password = document.getElementById("password").value;
+			const confirm = document.getElementById("confirm").value;
+			
+			if (hasPressed == true) return;
+			hasPressed = true;
+			
+			check();
+			
+			fetch("/register", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json"
+				},
+				body: JSON.stringify({
+					username: username,
+					password: password,
+                    confirm: confirm
+				})
+			}).then(async res => {
+				if (res.ok) {
+					document.getElementById("regForm").innerHTML = "<label>Account created! Redirecting...</label>";
+					setTimeout(() => {
+						window.location = "/login";
+					}, 1000);
+				} else {
+					document.getElementById("warningText").innerHTML = await res.text();
+					document.getElementById("warningDiv").style.display = "block";
+					hasPressed = false;
+				}
+			}).catch(async err => {
+				console.log(err);
+			});
+		}
+        
+        const defaultOptions = [
+          {
+            id: 0,
+            value: "Too weak",
+            minDiversity: 0,
+            minLength: 0
+          },
+          {
+            id: 1,
+            value: "Weak",
+            minDiversity: 2,
+            minLength: 6
+          },
+          {
+            id: 2,
+            value: "Medium",
+            minDiversity: 4,
+            minLength: 8
+          },
+          {
+            id: 3,
+            value: "Strong",
+            minDiversity: 4,
+            minLength: 10
+          }
+        ]
+
+        const passwordStrength = (password, options = defaultOptions, allowedSymbols="!\"#\$%&'\(\)\*\+,-\./:;<=>\?@\[\\\\\\]\^_`\{|\}~") => {
+          
+          let passwordCopy = password || ''
+
+          options[0].minDiversity = 0,
+          options[0].minLength = 0
+
+          const rules = [
+            {
+              regex: "[a-z]",
+              message: 'lowercase'
+            },
+            {
+              regex: '[A-Z]',
+              message: 'uppercase'
+            },
+            {
+              regex: '[0-9]',
+              message: 'number'
+            },
+          ]
+
+          if (allowedSymbols) {
+            rules.push({
+              regex: `[${allowedSymbols}]`,
+              message: 'symbol'
+            })
+          }
+
+          let strength = {}
+
+          strength.contains = rules
+            .filter(rule => new RegExp(`${rule.regex}`).test(passwordCopy))
+            .map(rule => rule.message)
+
+          strength.length = passwordCopy.length;
+
+          let fulfilledOptions = options
+            .filter(option => strength.contains.length >= option.minDiversity)
+            .filter(option => strength.length >= option.minLength)
+            .sort((o1, o2) => o2.id - o1.id)
+            .map(option => ({id: option.id, value: option.value}))
+
+          Object.assign(strength, fulfilledOptions[0])
+
+          return strength;
+        };
+	</script>
+</html>

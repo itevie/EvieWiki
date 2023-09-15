@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		%head%
+		<title>EvieWiki</title>
+	</head>
+	
+	<body>
+		%sidenav%
+		<div class="main">
+			%top%
+			<h1>Pending Deletion</h1>
+            <label>This article (<b>%articleName%</b>) is pending deletion and will be delete in <label id="time">loading...</label>.</label><br>
+            <label>The owner may recover this file by clicking <a href="/article/%articleName%/recover">here</a></label>
+		</div>
+	</body>
+    
+    <script>
+        let time = parseInt("%time%");
+        let deleteIn = parseInt("%deleteIn%");
+        let x = prettyMs(deleteIn - (Date.now() - time));
+        if (x == "") {
+            document.getElementById("time").innerHTML = "soon";
+        } else document.getElementById("time").innerHTML = x;
+    </script>
+</html>

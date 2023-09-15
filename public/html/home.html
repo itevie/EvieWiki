@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		%head%
+		<title>EvieWiki</title>
+	</head>
+	
+	<body>
+		%sidenav%
+		<div class="main">
+			%top%
+			<h1>%name% Main Page</h1>
+			<p>Welcome to a crappy wikipedia clone!</p>
+			<div class="alert-info">
+				<div class="alert-info info-text">
+					<label>Information</label>
+				</div>
+                <p>This site is still in beta phase, bugs and issues still may arise, if you find one please use the "Report an Issue" buttom.</p>
+                <p>If you ever have a suggestion, please suggest it using the sidenav.</p>
+            </div><br>
+			<div class="searchDiv">
+				<center style="padding: 5px">
+					<h2>Search %name%'s Articles</h2>
+					<p>Search through all of %name%'s articles to find something you need</p>
+					<input onkeypress="key(event);" type="text" id="query" style="width: 25%; display: inline-block" />
+					<button onclick="search()">Search!</button>
+				</center>
+			</div>
+		</div>
+	</body>
+    
+    <script>
+        function key(e) {
+            var key = e.keyCode || e.which;
+            if (key == 13){
+                search();
+            }
+        }
+        
+        function search() {
+            window.location = `/search?query=${document.getElementById('query').value}`;
+        }
+    </script>
+</html>
